@@ -464,6 +464,24 @@ GLOSDFactoryBase::~GLOSDFactoryBase(void)
 	OSA_mutexDelete(&m_mutexlock);
 }
 
+void GLOSDFactoryBase::Add(IPattern* ptt)
+{
+	OSA_mutexLock(&m_mutexlock);
+	vPatterns.push_back(ptt);
+	OSA_mutexUnlock(&m_mutexlock);
+}
+void GLOSDFactoryBase::Erase(IPattern* ptt)
+{
+	OSA_mutexLock(&m_mutexlock);
+	for(viPtt it=vPatterns.begin();it!=vPatterns.end(); it++){
+		if(*it == ptt){
+			vPatterns.erase(it);
+			break;
+		}
+	}
+	OSA_mutexUnlock(&m_mutexlock);
+}
+
 void GLOSDFactoryBase::Add(GLOSDTxt* txt)
 {
 	int idx = vecTxts.size();
@@ -660,6 +678,15 @@ void GLOSD::directDraw(const cv::Scalar& norColor, int  thickness)
 void GLOSD::Draw(void)
 {
 	OSA_mutexLock(&m_mutexlock);
+
+	if(1)
+	{
+		int cnt = vPatterns.size();
+		for(int i = 0; i<cnt; i++)
+			vPatterns[i]->draw();
+		glUseProgram(0);
+	}
+
 	glViewport(0, 0, m_viewport.width, m_viewport.height);
 
 	directDraw(cv::Scalar(fabs(m_color.val[0]-0.5), fabs(m_color.val[1]-0.5), fabs(m_color.val[2]-0.5), 1.0), m_thickness+2);
