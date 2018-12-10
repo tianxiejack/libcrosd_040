@@ -125,6 +125,21 @@ void put(const int *statValue, const int nStat, const cv::Point& pos, const cv::
 	va_end(args);
 }
 
+void shprintf(wchar_t *__restrict share, size_t n, const wchar_t *__restrict format, ...)
+{
+	int nFacts = vosdFactorys.size();
+	for(int i=0; i<nFacts; i++){
+		vosdFactorys[i]->sharelock();
+	}
+	va_list args;
+	va_start(args, format);
+	vswprintf(share, n, format, args);
+	va_end(args);
+	for(int i=0; i<nFacts; i++){
+		vosdFactorys[i]->shareunlock();
+	}
+}
+
 void erase(const void *share)
 {
 	std::vector<GLOSDTxt*>::iterator it;
@@ -304,14 +319,15 @@ extern GLShaderManagerMini		glShaderManager;
 class glPattern : public IPattern
 {
 public:
-	glPattern(const cv::Mat& mat, const cv::Rect& roi):m_array(NULL),m_mat(mat),m_roi(roi),m_width(0),m_height(0){};
-	glPattern(const std::vector<float>* vArray, const cv::Rect& roi):m_array(vArray),m_roi(roi),m_width(0),m_height(0){};
+	glPattern(const cv::Mat& mat, const cv::Rect& roi, const cv::Scalar& color):m_array(NULL),m_mat(mat),m_roi(roi),m_color(color),m_width(0),m_height(0){};
+	glPattern(const std::vector<float>* vArray, const cv::Rect& roi, const cv::Scalar& color):m_array(vArray),m_roi(roi),m_color(color),m_width(0),m_height(0){};
 	virtual ~glPattern(void){};
 
 	const std::vector<float>* m_array;
 	cv::Mat m_mat;
 	cv::Rect m_roi;
 	int m_width, m_height;
+	cv::Scalar m_color;
 
 	GLMatrixStack modelViewMatrix;
 	GLMatrixStack projectionMatrix;
@@ -344,7 +360,7 @@ public:
 			m_width=m_mat.cols; m_height=m_mat.rows;
 			ChangeSize();
 
-		    dataBatch.Reset();
+			gridBatch.Reset();
 			gridBatch.Begin(GL_LINES, (m_width+m_height)*20);
 		    GLfloat cellx = 2.0f/m_width;
 		    GLfloat cellz = 2.0f/m_height;
@@ -358,14 +374,14 @@ public:
 		    }
 		    gridBatch.End();
 
-		    dataBatch.Reset();
+		    axisBatch.Reset();
 		    axisBatch.Begin(GL_LINES, 6);
-		    axisBatch.Vertex3f(-1, -1.f, -1.0f);
-		    axisBatch.Vertex3f(+1.2, -1.f, -1.0f);
+		    axisBatch.Vertex3f(-1, 0.f, -1.0f);
+		    axisBatch.Vertex3f(+1.2, 0.f, -1.0f);
 		    axisBatch.Vertex3f(-1, -1.f, -1.0f);
 		    axisBatch.Vertex3f(-1, 1.2f, -1.0f);
-		    axisBatch.Vertex3f(-1, -1.f, -1.0f);
-		    axisBatch.Vertex3f(-1, -1.f, 1.2f);
+		    axisBatch.Vertex3f(-1, 0.f, -1.0f);
+		    axisBatch.Vertex3f(-1, 0.f, 1.2f);
 		    axisBatch.End();
 
 		    //cameraFrame.MoveUp(1.0f);
@@ -423,7 +439,8 @@ public:
 	    glLineWidth(1.0);
 
 		// Draw the data
-	    color[0] = 0; color[1] = 1; color[2] = 0.0; color[3] = 0.5;
+	    color[0] = m_color.val[0]/255.0; color[1] = m_color.val[1]/255.0;
+	    color[2] = m_color.val[2]/255.0; color[3] = m_color.val[3]/255.0;
 	    glShaderManager.UseStockShader(GLT_SHADER_FLAT,project,color);
 	    glLineWidth(1.0);
 		glEnable(GL_BLEND);
@@ -440,6 +457,24 @@ public:
 	void drawArray(void)
 	{
 	    glViewport(m_roi.x, m_roi.y, m_roi.width, m_roi.height);
+
+	    M3DVector4f color = { 1.0f, 1.0f, 0.0f, 1.0f};
+	    color[0] = 1.0; color[1] = 1.0; color[2] = 1.0;
+	    axisBatch.Reset();
+	    axisBatch.Begin(GL_LINES, 4);
+	    axisBatch.Vertex3f(-1, 0.f, 0.0f);
+	    axisBatch.Vertex3f(+1.2, 0.f, 0.0f);
+	    axisBatch.Vertex3f(-1, -1.f, 0.0f);
+	    axisBatch.Vertex3f(-1, 1.2f, 0.0f);
+	    axisBatch.End();
+	    glShaderManager.UseStockShader(GLT_SHADER_IDENTITY,color);
+	    glLineWidth(2.0);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	    axisBatch.Draw();
+	    glDisable(GL_BLEND);
+	    glLineWidth(1.0);
+
 		m_width = m_array->size();
 		//OSA_printf("%d", m_width);
 		m_height = 1;
@@ -454,7 +489,8 @@ public:
 		}
 		dataBatch.End();
 		// Draw the data
-		M3DVector4f color = { 1.0f, 1.0f, 0.0f, 1.0f};
+		color[0] = m_color.val[0]/255.0; color[1] = m_color.val[1]/255.0;
+		color[2] = m_color.val[2]/255.0; color[3] = m_color.val[3]/255.0;
 	    glShaderManager.UseStockShader(GLT_SHADER_IDENTITY,color);
 	    glLineWidth(1.0);
 		glEnable(GL_BLEND);
@@ -475,18 +511,18 @@ public:
 	}
 };
 
-IPattern* IPattern::Create(const cv::Mat& mat, const cv::Rect& rcVeiw)
+IPattern* IPattern::Create(const cv::Mat& mat, const cv::Rect& rcVeiw, const cv::Scalar& color)
 {
-	IPattern* pattern = new glPattern(mat, rcVeiw);
+	IPattern* pattern = new glPattern(mat, rcVeiw, color);
 	int nFacts = vosdFactorys.size();
 	for(int i=0; i<nFacts; i++){
 		vosdFactorys[i]->Add(pattern);
 	}
 	return pattern;
 }
-IPattern* IPattern::Create(const std::vector<float>* vArray, const cv::Rect& rcVeiw)
+IPattern* IPattern::Create(const std::vector<float>* vArray, const cv::Rect& rcVeiw, const cv::Scalar& color)
 {
-	IPattern* pattern = new glPattern(vArray, rcVeiw);
+	IPattern* pattern = new glPattern(vArray, rcVeiw, color);
 	int nFacts = vosdFactorys.size();
 	for(int i=0; i<nFacts; i++){
 		vosdFactorys[i]->Add(pattern);

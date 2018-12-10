@@ -88,6 +88,7 @@ public:
         if(error  != FT_Err_Ok)
         {
         	printf("FT_Init_FreeType Error !!! %d\n",error);
+        	assert(error  == FT_Err_Ok);
         }
     }
 
@@ -175,6 +176,7 @@ public:
         if (_face)
         {
             FT_Done_Face(FT_Face(_face));
+            assert(_face!=0);
             _xStart         =   0;
             _yStart         =   0;
             memset(_character,0,sizeof(_character));
@@ -186,6 +188,7 @@ public:
         if((error   =   FT_New_Face( (FT_Library)_library, faceName, 0, &ftFace )) != FT_Err_Ok)
         {
         	printf("FT_New_Face Error %d\n",error);
+            assert(error  == FT_Err_Ok);
         }
         _face   =   ftFace;
        
@@ -271,6 +274,11 @@ public:
     
     Character getCharacter( int ch )
     {
+    	if(ch<0 || ch>=(1<<16)){
+    		printf("\nWarn %s ch=%d", __func__, ch);
+    		ch = 0;
+    	}
+    	assert(ch>=0 && ch<(1<<16));
         if (_character[ch].x0 == 0 &&
             _character[ch].x0 == 0 &&
             _character[ch].x1 == 0 &&

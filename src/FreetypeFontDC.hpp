@@ -67,6 +67,7 @@ public:
         _isSymbol       =   false;
 
         FT_Init_FreeType( (FT_Library*)&_library );
+        assert(_library != 0);
     }
 
     ~FreeTypeFont()
@@ -112,11 +113,13 @@ public:
         if((error   =   FT_New_Face( (FT_Library)_library, faceName, 0, &ftFace )) != FT_Err_Ok)
         {
         	printf("FT_New_Face Error %d\n",error);
+        	assert(0);
         }
         _face   =   ftFace;
        
         if ( error != 0 ) 
         {
+        	assert(0);
             return  false;
         }
         
@@ -132,13 +135,14 @@ public:
         if((error   =   FT_Set_Char_Size(ftFace, ftSize, 0, 0, fontSize)) != FT_Err_Ok)
         {
         	printf("FT_Set_Char_Size Error %d\n",error);
+        	assert(0);
         }
         _sysFontImg = cv::Mat(_textureHeight, _textureWidth, CV_8UC1);
         _sysZeroImg = cv::Mat(_textureHeight, _textureWidth, CV_8UC1);
         memset(_sysFontImg.data, 0, _sysFontImg.cols*_sysFontImg.rows*_sysFontImg.channels());
         memset(_sysZeroImg.data, 0, _sysZeroImg.cols*_sysZeroImg.rows*_sysZeroImg.channels());
 
-        printf("%s %d: fontSize=%d _sysFontImg(%dx%d)\n", __FILE__, __LINE__,
+        printf("\n%s %d: fontSize=%d _sysFontImg(%dx%d)\n", __FILE__, __LINE__,
         		fontSize, _sysFontImg.cols,_sysFontImg.rows);
 
         return  true;
@@ -160,6 +164,11 @@ public:
 
     Character getCharacter( int ch )
     {
+    	if(ch<0 || ch>=(1<<16)){
+    		printf("\nWarn %s ch=%d", __func__, ch);
+    		ch = 0;
+    	}
+    	assert(ch>=0 && ch<(1<<16));
         if (_character[ch].x0 == 0 &&
             _character[ch].x0 == 0 &&
             _character[ch].x1 == 0 &&

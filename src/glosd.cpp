@@ -66,14 +66,17 @@ void GLOSDTxt::txt(const cv::Point& pt, const wchar_t* text, const cv::Scalar& c
 	m_sValue = text;
 	m_share = text;
 	m_textLen = wcslen(m_sValue);
+	//OSA_printf("%s %d: m_textLen = %ld", __func__, __LINE__, m_textLen);
 	if((m_textLen)*sizeof(wchar_t)>m_memSize || m_memSize == 0){
 		if(m_text != NULL)
 			delete [] m_text;
-		m_memSize = (m_textLen+16)*sizeof(wchar_t);
-		m_text = new wchar_t[m_textLen+16];
+		m_memSize = (m_textLen+32)*sizeof(wchar_t);
+		m_text = new wchar_t[m_textLen+32];
 	}
+	//OSA_printf("%s %d: m_textLen = %ld", __func__, __LINE__, m_textLen);
 	memset(m_text, 0, m_memSize);
 	memcpy(m_text, m_sValue, m_textLen*sizeof(wchar_t));
+	//OSA_printf("%s %d: m_textLen = %ld", __func__, __LINE__, m_textLen);
 	OSA_mutexUnlock(m_mutexlock);
 }
 
@@ -261,6 +264,7 @@ void GLOSDTxt::update(void)
 			m_text = new wchar_t[m_textLen+16];
 		}
 		memset(m_text, 0, m_memSize);
+		//swprintf(m_text, len, L"%s", m_sValue);
 		memcpy(m_text, m_sValue, m_textLen*sizeof(wchar_t));
 	}
 	m_textLen = wcslen(m_text);
@@ -638,7 +642,8 @@ GLOSD::~GLOSD(void)
 {
 	delete m_gltxt;
 }
-void GLOSD::directDraw(const cv::Scalar& norColor, int  thickness)
+
+void GLOSD::directDraw(const cv::Scalar& norColor, float  thickness)
 {
 	int nPts = m_vPts.size();
 	if(nPts>0)
@@ -646,6 +651,7 @@ void GLOSD::directDraw(const cv::Scalar& norColor, int  thickness)
 		M3DVector4f  vColor;
 		vColor[0] = norColor.val[0];vColor[1] = norColor.val[1];
 		vColor[2] = norColor.val[2];vColor[3] = norColor.val[3];
+		//OSA_printf("color %f %f %f %f", vColor[0],vColor[1],vColor[2],vColor[3]);
 		glShaderManager.UseStockShader(GLT_SHADER_IDENTITY, vColor);
 		GLBatchMini lineBatch;
 		lineBatch.Reset();
@@ -670,7 +676,7 @@ void GLOSD::directDraw(const cv::Scalar& norColor, int  thickness)
 		wchar_t wsNumber[16];
 		memset(wsNumber, 0, sizeof(wsNumber));
 		swprintf(wsNumber, 16, L"%d", m_vNums[i]);
-		cv::Point pt(m_vNumPts[i].x+((thickness-m_thickness)>>1), m_vNumPts[i].y+((thickness-m_thickness)>>1));
+		cv::Point pt(m_vNumPts[i].x+((thickness-m_thickness)*0.5), m_vNumPts[i].y+((thickness-m_thickness)*0.5));
 		m_gltxt->putText(m_viewport, wsNumber, pt, color);
 	}
 
@@ -689,7 +695,7 @@ void GLOSD::Draw(void)
 
 	glViewport(0, 0, m_viewport.width, m_viewport.height);
 
-	directDraw(cv::Scalar(fabs(m_color.val[0]-0.5), fabs(m_color.val[1]-0.5), fabs(m_color.val[2]-0.5), 1.0), m_thickness+2);
+	directDraw(cv::Scalar(fabs(m_color.val[0]-0.5), fabs(m_color.val[1]-0.5), fabs(m_color.val[2]-0.5), 1.0), (float)m_thickness+0.5);
 	directDraw(m_color, m_thickness);
 
 	int alen = mapUnits.size();
