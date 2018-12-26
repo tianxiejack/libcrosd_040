@@ -17,7 +17,7 @@ using namespace cr_osd;
 
 GLOSDTxt::GLOSDTxt(GLOSDFactory *factory, const cv::Size2f& posScale)
 : m_factory(factory),m_index(-1), m_bUpdate(false), m_text(NULL), m_memSize(0),m_textLen(0), m_bAlloc(false),
-  m_share(NULL), m_sValue(NULL), m_iValue(NULL), m_fValue(NULL), m_statValue(NULL), m_byValue(NULL), m_uiValue(NULL),
+  m_share(NULL), m_sValue(NULL), m_strValue(NULL), m_iValue(NULL), m_fValue(NULL), m_statValue(NULL), m_byValue(NULL), m_uiValue(NULL),
   m_posScale(posScale)
 {
 	m_pos.x = 0;
@@ -77,6 +77,28 @@ void GLOSDTxt::txt(const cv::Point& pt, const wchar_t* text, const cv::Scalar& c
 	memset(m_text, 0, m_memSize);
 	memcpy(m_text, m_sValue, m_textLen*sizeof(wchar_t));
 	//OSA_printf("%s %d: m_textLen = %ld", __func__, __LINE__, m_textLen);
+	OSA_mutexUnlock(m_mutexlock);
+}
+
+void GLOSDTxt::txt(const cv::Point& pt, const char* text, const cv::Scalar& color)
+{
+	OSA_mutexLock(m_mutexlock);
+	m_pos = cv::Point(pt.x*m_posScale.width, pt.y*m_posScale.height);
+	m_vColors[0] = color.val[0];
+	m_vColors[1] = color.val[1];
+	m_vColors[2] = color.val[2];
+	m_vColors[3] = color.val[3];
+	m_strValue = text;
+	m_share = text;
+	m_textLen = strlen(m_strValue);
+	if((m_textLen)*sizeof(wchar_t)>m_memSize || m_memSize == 0){
+		if(m_text != NULL)
+			delete [] m_text;
+		m_memSize = (m_textLen+32)*sizeof(wchar_t);
+		m_text = new wchar_t[m_textLen+32];
+	}
+	memset(m_text, 0, m_memSize);
+	swprintf(m_text, m_textLen+32, L"%s", m_strValue);
 	OSA_mutexUnlock(m_mutexlock);
 }
 
@@ -267,6 +289,9 @@ void GLOSDTxt::update(void)
 		//swprintf(m_text, len, L"%s", m_sValue);
 		memcpy(m_text, m_sValue, m_textLen*sizeof(wchar_t));
 	}
+	if(m_strValue != NULL)
+		swprintf(m_text, len, L"%s", m_strValue);
+
 	m_textLen = wcslen(m_text);
 }
 

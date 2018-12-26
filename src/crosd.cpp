@@ -58,6 +58,18 @@ void put(const wchar_t* s, const cv::Point& pos, const cv::Scalar& color)
 	}
 }
 
+void put(const char* str, const cv::Point& pos, const cv::Scalar& color)
+{
+	OSA_assert(str != NULL);
+	int nFacts = vosdFactorys.size();
+	for(int i=0; i<nFacts; i++){
+		cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
+		GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+		vtxts.push_back(txt);
+		txt->txt(pos, str, color);
+	}
+}
+
 void put(const int* pValue, const wchar_t* format, const cv::Point& pos, const cv::Scalar& color)
 {
 	OSA_assert(pValue != NULL);
