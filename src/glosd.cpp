@@ -310,13 +310,13 @@ GLOSDUNITBase::GLOSDUNITBase(GLOSDFactory *factory, int nVert, GLenum primitive)
 	m_factory->Add(this);
 	memset(vVertexPos, 0, VSize);
 	memset(vColorPos, 0, CSize);
-	m_vtps.resize(m_nVert);
+	//m_vtps.resize(m_nVert);
 }
 GLOSDUNITBase::~GLOSDUNITBase(void)
 {
 	if(m_factory != NULL)
 		m_factory->Erase(this);
-	m_vtps.clear();
+	//m_vtps.clear();
 }
 
 GLOSDLine::GLOSDLine(GLOSDFactory *factory):GLOSDUNITBase(factory, 2)
@@ -332,8 +332,8 @@ void GLOSDLine::line(const cv::Point& pt1, const cv::Point& pt2, const cv::Scala
 	float *vVertex, *vColor;
 	cv::Scalar norColor(color.val[0]*0.003921569, color.val[1]*0.003921569, color.val[2]*0.003921569, color.val[3]*0.003921569);
 	OSA_mutexLock(m_mutexlock);
-	m_vtps[0] = pt1;
-	m_vtps[1] = pt2;
+	//m_vtps[0] = pt1;
+	//m_vtps[1] = pt2;
 	pos = normalized(pt1);
 	vVertex = vVertexPos; vVertex[0] = pos.x; vVertex[1] = pos.y;
 	pos = normalized(pt2);
@@ -365,7 +365,7 @@ void GLOSDPolygon::polygon(const cv::Point* pts, const cv::Scalar& color, int th
 	vVertex = vVertexPos;
 	vColor = vColorPos;
 	for(int i=0; i<m_nVert; i++){
-		m_vtps[i] = pts[i];
+		//m_vtps[i] = pts[i];
 		pos = normalized(pts[i]);
 		vVertex[0] = pos.x; vVertex[1] = pos.y;
 		vVertex += 3;
@@ -423,7 +423,7 @@ void GLOSDRectangle::rectangle(const cv::Rect& rec, const cv::Scalar& color, int
 	vVertex = vVertexPos;
 	vColor = vColorPos;
 	for(int i=0; i<m_nVert; i++){
-		m_vtps[i] = pt[i];
+		//m_vtps[i] = pt[i];
 		pos[i] = normalized(pt[i]);
 		vVertex[0] = pos[i].x; vVertex[1] = pos[i].y;
 		vVertex += 3;
@@ -444,7 +444,7 @@ void GLOSDRectangle::rectangle(const cv::Rect& rec, const cv::Scalar& color, int
  *
  */
 GLOSDFactoryBase::GLOSDFactoryBase(int vWidth, int vHeight, int fontSize)
-:m_allocCnt(0), m_iCur(0), vVertexArray(NULL), vColorArray(NULL), m_fontSize(fontSize)
+:m_fontSize(fontSize)
 {
 	m_viewport = cv::Size(vWidth, vHeight);
 	m_center.x = (m_viewport.width * 0.5f);
@@ -476,14 +476,6 @@ GLOSDFactoryBase::~GLOSDFactoryBase(void)
 		line->m_factory = NULL;
 	}
 	vecUnits.clear();
-
-	if(vVertexArray != NULL)
-		delete [] vVertexArray;
-	vVertexArray = NULL;
-	if(vColorArray != NULL)
-		delete [] vColorArray;
-	vColorArray = NULL;
-	m_allocCnt = 0;
 
 	mapUnits.clear();
 	vecCnt.clear();
@@ -539,48 +531,18 @@ void GLOSDFactoryBase::Erase(GLOSDTxt* txt)
 void GLOSDFactoryBase::Add(GLOSDUNITBase* unit)
 {
 	OSA_mutexLock(&m_mutexlock);
-	if(m_iCur+unit->m_nVert>m_allocCnt){
-		float *remem;
-
-		remem = new float[(m_allocCnt+50)*3*2];
-		OSA_assert(remem != NULL);
-		if(vVertexArray != NULL){
-			memcpy(remem, vVertexArray, m_allocCnt*3*2);
-			delete [] vVertexArray;
-		}
-		vVertexArray = remem;
-
-		remem = new float[(m_allocCnt+50)*4*2];
-		OSA_assert(remem != NULL);
-		if(vColorArray != NULL){
-			memcpy(remem, vColorArray, m_allocCnt*4*2);
-			delete [] vColorArray;
-		}
-		vColorArray = remem;
-
-		GLfloat *vPos = vVertexArray;
-		GLfloat *cPos = vColorArray;
-		for(int i=0; i<vecUnits.size(); i++){
-			vecUnits[i]->vVertexPos = vPos;
-			vecUnits[i]->vColorPos = cPos;
-			vPos += vecUnits[i]->m_nVert*3;
-			cPos += vecUnits[i]->m_nVert*4;
-		}
-
-		m_allocCnt = m_allocCnt+50;
-	}
 	int idx = vecUnits.size();
 	unit->m_index = idx;
 	unit->m_viewport = m_viewport;
 	unit->m_center = m_center;
 	unit->m_mutexlock = &m_mutexlock;
-	unit->vVertexPos = vVertexArray+m_iCur*3;
-	unit->vColorPos = vColorArray+m_iCur*4;
+	unit->vVertexPos = new float[unit->m_nVert*3];
+	unit->vColorPos = new float[unit->m_nVert*4];
 	vecUnits.push_back(unit);
+	OSA_assert(mapUnits.size()>unit->m_dtype);
+	OSA_assert(vecCnt.size()>unit->m_dtype);
 	mapUnits[unit->m_dtype].push_back(unit);
 	vecCnt[unit->m_dtype] += unit->m_nVert;
-	m_iCur+=unit->m_nVert;
-	//OSA_printf("%s : %d %p", __func__, unit->m_index, unit);
 	OSA_mutexUnlock(&m_mutexlock);
 }
 
@@ -594,27 +556,11 @@ void GLOSDFactoryBase::Erase(GLOSDUNITBase* unit)
 	int len = vecUnits.size();
 	int idx = unit->m_index;
 	if(len>idx+1){
-		GLfloat *vPos = unit->vVertexPos;
-		GLfloat *cPos = unit->vColorPos;
-		GLfloat *vNextPos = vPos + unit->m_nVert*3;
-		GLfloat *cNextPos = cPos + unit->m_nVert*4;
-		GLfloat *vCur = vVertexArray+m_iCur*3;
-		GLfloat *cCur = vColorArray+m_iCur*4;
-		memcpy(vPos, vNextPos, vCur-vNextPos);
-		memcpy(cPos, cNextPos, cCur-cNextPos);
 		for(int i=idx+1; i<len; i++)
 		{
 			vecUnits[i]->m_index -= 1;//vecUnits[i]->m_index-1;
-			vecUnits[i]->vVertexPos = vPos;
-			vecUnits[i]->vColorPos = cPos;
-			vPos += vecUnits[i]->m_nVert*3;
-			cPos += vecUnits[i]->m_nVert*4;
-			//printf("; idx = %d %d %p", idx, vecUnits[i]->m_index, vecUnits[i]);
 		}
 	}
-	m_iCur -= unit->m_nVert;
-	unit->m_factory = NULL;
-	unit->m_index = -1;
 	//vecUnits.pop_back();
 	for(viUNIT it=vecUnits.begin();it!=vecUnits.end(); it++){
 		if(*it == unit){
@@ -630,6 +576,11 @@ void GLOSDFactoryBase::Erase(GLOSDUNITBase* unit)
 			break;
 		}
 	}
+
+	delete [] unit->vVertexPos;
+	delete [] unit->vColorPos;
+	unit->m_factory = NULL;
+	unit->m_index = -1;
 
 	OSA_mutexUnlock(&m_mutexlock);
 }
@@ -723,15 +674,20 @@ void GLOSD::Draw(void)
 	directDraw(cv::Scalar(fabs(m_color.val[0]-0.5), fabs(m_color.val[1]-0.5), fabs(m_color.val[2]-0.5), 1.0), (float)m_thickness+0.5);
 	directDraw(m_color, m_thickness);
 
+#if 1
+
+
 	int alen = mapUnits.size();
 	if(alen>0)
 	{
+
 		GLfloat *vVer, *vColor;
 		static M3DMatrix44f	identity = { 1.0f, 0.0f, 0.0f, 0.0f,
 										 0.0f, 1.0f, 0.0f, 0.0f,
 										 0.0f, 0.0f, 1.0f, 0.0f,
 										 0.0f, 0.0f, 0.0f, 1.0f };
 		glShaderManager.UseStockShader(GLT_SHADER_SHADED, identity);
+#if 0
 		for(int type=alen-1; type>=0; --type)
 		{
 			int len = mapUnits[type].size();
@@ -764,7 +720,47 @@ void GLOSD::Draw(void)
 			glDisable(GL_BLEND);
 			glLineWidth(1.0);
 		}
+#else
+		for(int type=alen-1; type>=0; --type)
+		{
+			int len = mapUnits[type].size();
+			if(len<=0)
+				continue;
+
+			int thickness = DType_thickness(type);
+			GLenum primitive = DType_primitive(type);
+
+			glLineWidth(thickness);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			for(int i=0; i<len; i++){
+				GLOSDUNITBase* unit = mapUnits[type][i];
+				GLBatchMini             floorBatch;
+				vVer = unit->vVertexPos;
+				vColor = unit->vColorPos;
+				int nVert = unit->m_nVert;
+				//OSA_printf("type %d, len = %d nVert = %d thickness = %d", type, len, nVert, thickness);
+				floorBatch.Reset();
+				floorBatch.Begin(primitive, nVert);
+				for(int j=0; j<nVert; j++){
+					floorBatch.Color4f(vColor[0],vColor[1],vColor[2],vColor[3]);
+					floorBatch.Vertex3f(vVer[0],vVer[1],vVer[2]);
+					//OSA_printf("%.2f,%.2f,%.2f,  %.2f %.2f %.2f %.2f", vVer[0],vVer[1],vVer[2], vColor[0],vColor[1],vColor[2],vColor[3]);
+					vVer += 3;
+					vColor += 4;
+				}
+				floorBatch.End();
+				floorBatch.Draw();
+			}
+
+			glDisable(GL_BLEND);
+			glLineWidth(1.0);
+		}
+#endif
 	}
+
+#endif
 
 	glShaderManager.UseStockShader(GLT_SHADER_TEXTURE_SHADED, 0);
 	int cnt = vecTxts.size();
@@ -1097,7 +1093,8 @@ void DCOSD::Draw(void)
 			OSA_assert(m_dc != NULL);
 			for(int j=0; j<nVert; j++){
 				//cv::Point *pt = new cv::Point(vVer[0]*m_dc->cols+0.5, vVer[1]*m_dc->rows+0.5);
-				dcuPos->vdrawPos.push_back(unit->m_vtps[j]);
+				//dcuPos->vdrawPos.push_back(unit->m_vtps[j]);
+				dcuPos->vdrawPos.push_back(cv::Point(vVer[0]*m_dc->cols+0.5, vVer[1]*m_dc->rows+0.5));
 				vVer += 3;
 				//vColor += 4;
 			}

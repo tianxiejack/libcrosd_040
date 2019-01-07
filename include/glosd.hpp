@@ -214,10 +214,6 @@ protected:
 	aUNIT mapUnits;
 	vPtt vPatterns;
 	std::vector<int> vecCnt;
-	GLfloat *vVertexArray;
-	GLfloat *vColorArray;
-	int m_allocCnt;
-	int m_iCur;
 	cv::Scalar m_color;
 	int m_thickness;
 protected:

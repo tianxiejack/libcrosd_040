@@ -275,8 +275,9 @@ int Pattern::update(const std::vector<cv::Point>& vpts, const cv::Scalar& color,
 		vVertex = base->vVertexPos;
 		vColor = base->vColorPos;
 		for(int i=0; i<base->m_nVert; i++){
-			base->m_vtps[i] = cv::Point(vpts[i].x*scale.width, vpts[i].y*scale.height);
-			pos = base->normalized(base->m_vtps[i]);
+			//base->m_vtps[i] = cv::Point(vpts[i].x*scale.width, vpts[i].y*scale.height);
+			//pos = base->normalized(base->m_vtps[i]);
+			pos = base->normalized(cv::Point(vpts[i].x*scale.width, vpts[i].y*scale.height));
 			vVertex[0] = pos.x; vVertex[1] = pos.y;
 			vVertex += 3;
 			vColor[0] = norColor.val[0]; vColor[1] = norColor.val[1];
