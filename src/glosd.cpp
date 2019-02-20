@@ -687,6 +687,7 @@ void GLOSD::Draw(void)
 										 0.0f, 0.0f, 1.0f, 0.0f,
 										 0.0f, 0.0f, 0.0f, 1.0f };
 		glShaderManager.UseStockShader(GLT_SHADER_SHADED, identity);
+		//glShaderManager.UseStockShader(GLT_SHADER_IDENTITY, identity);
 #if 0
 		for(int type=alen-1; type>=0; --type)
 		{
@@ -741,12 +742,15 @@ void GLOSD::Draw(void)
 				vColor = unit->vColorPos;
 				int nVert = unit->m_nVert;
 				//OSA_printf("type %d, len = %d nVert = %d thickness = %d", type, len, nVert, thickness);
+				//glShaderManager.UseStockShader(GLT_SHADER_IDENTITY, vColor);
 				floorBatch.Reset();
 				floorBatch.Begin(primitive, nVert);
 				for(int j=0; j<nVert; j++){
 					floorBatch.Color4f(vColor[0],vColor[1],vColor[2],vColor[3]);
 					floorBatch.Vertex3f(vVer[0],vVer[1],vVer[2]);
-					//OSA_printf("%.2f,%.2f,%.2f,  %.2f %.2f %.2f %.2f", vVer[0],vVer[1],vVer[2], vColor[0],vColor[1],vColor[2],vColor[3]);
+					//if(primitive == GL_POINTS)
+					//	OSA_printf("%.2f,%.2f,%.2f,  %.2f %.2f %.2f %.2f", vVer[0],vVer[1],vVer[2], vColor[0],vColor[1],vColor[2],vColor[3]);
+
 					vVer += 3;
 					vColor += 4;
 				}
@@ -772,9 +776,9 @@ void GLOSD::Draw(void)
 		if(txt->m_text != NULL)
 			txt->m_textLen = wcslen(txt->m_text);
 		if(txt->m_textLen>0){
-			cv::Point pos2(txt->m_pos.x+1, txt->m_pos.y+1);
-			cv::Scalar color2(fabs(txt->m_vColors[0]-128.0),fabs(txt->m_vColors[1]-128.0),fabs(txt->m_vColors[2]-128.0),txt->m_vColors[3]);
-			m_gltxt->putText(m_viewport, txt->m_text, pos2, color2);
+			//cv::Point pos2(txt->m_pos.x+1, txt->m_pos.y+1);
+			//cv::Scalar color2(fabs(txt->m_vColors[0]-128.0),fabs(txt->m_vColors[1]-128.0),fabs(txt->m_vColors[2]-128.0),txt->m_vColors[3]);
+			//m_gltxt->putText(m_viewport, txt->m_text, pos2, color2);
 			cv::Point pos1(txt->m_pos.x, txt->m_pos.y);
 			cv::Scalar color1(txt->m_vColors[0],txt->m_vColors[1],txt->m_vColors[2],txt->m_vColors[3]);
 			m_gltxt->putText(m_viewport, txt->m_text, pos1, color1);

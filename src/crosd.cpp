@@ -279,9 +279,13 @@ int Pattern::update(const std::vector<cv::Point>& vpts, const cv::Scalar& color,
 			//pos = base->normalized(base->m_vtps[i]);
 			pos = base->normalized(cv::Point(vpts[i].x*scale.width, vpts[i].y*scale.height));
 			vVertex[0] = pos.x; vVertex[1] = pos.y;
-			vVertex += 3;
 			vColor[0] = norColor.val[0]; vColor[1] = norColor.val[1];
 			vColor[2] = norColor.val[2]; vColor[3] = norColor.val[3];
+			if(base->m_primitive == GL_POINTS){
+				OSA_printf("pos (%d, %d) (%f, %f) (%f, %f) (%f, %f)", vpts[i].x, vpts[i].y, scale.width, scale.height, base->m_center.x, base->m_center.y, pos.x, pos.y);
+				OSA_printf("%f,%f,%f,  %.2f %.2f %.2f %.2f", vVertex[0],vVertex[1],vVertex[2], vColor[0],vColor[1],vColor[2],vColor[3]);
+			}
+			vVertex += 3;
 			vColor += 4;
 		}
 		base->m_bUpdate = true;
@@ -304,6 +308,8 @@ void Pattern::set(const cv::Scalar& color)
 		for(int i=0; i<base->m_nVert; i++){
 			vColor[0] = norColor.val[0]; vColor[1] = norColor.val[1];
 			vColor[2] = norColor.val[2]; vColor[3] = norColor.val[3];
+			if(base->m_primitive == GL_POINTS)
+				OSA_printf("set %.2f %.2f %.2f %.2f", vColor[0],vColor[1],vColor[2],vColor[3]);
 			vColor += 4;
 		}
 		OSA_mutexUnlock(base->m_mutexlock);
