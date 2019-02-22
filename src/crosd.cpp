@@ -28,6 +28,19 @@ namespace cr_osd
 {
 std::vector<GLOSDFactory *> vosdFactorys;
 static std::vector<GLOSDTxt *> vtxts;
+static int factoryIndex = -1;
+static GLOSDFactory * curFactory = NULL;
+
+void bind(int index)
+{
+	int nFacts = vosdFactorys.size();
+	factoryIndex = index;
+	if(factoryIndex<0 || factoryIndex>=factoryIndex)
+		curFactory = NULL;
+	else
+		curFactory = vosdFactorys[factoryIndex];
+}
+
 void put(wchar_t* s, const cv::Point& pos, const cv::Scalar& color, size_t n, const wchar_t* format, ...)
 {
 	va_list args;
@@ -37,36 +50,54 @@ void put(wchar_t* s, const cv::Point& pos, const cv::Scalar& color, size_t n, co
 	vswprintf(s, n, format, args);
 	va_end(args);
 
-	int nFacts = vosdFactorys.size();
-	for(int i=0; i<nFacts; i++){
-		cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
-		GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+	if(curFactory != NULL){
+		GLOSDTxt * txt = new GLOSDTxt(curFactory);
 		vtxts.push_back(txt);
 		txt->txt(pos, s, color);
+	}else{
+		int nFacts = vosdFactorys.size();
+		for(int i=0; i<nFacts; i++){
+			cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
+			GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+			vtxts.push_back(txt);
+			txt->txt(pos, s, color);
+		}
 	}
 }
 
 void put(const wchar_t* s, const cv::Point& pos, const cv::Scalar& color)
 {
 	OSA_assert(s != NULL);
-	int nFacts = vosdFactorys.size();
-	for(int i=0; i<nFacts; i++){
-		cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
-		GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+	if(curFactory != NULL){
+		GLOSDTxt * txt = new GLOSDTxt(curFactory);
 		vtxts.push_back(txt);
 		txt->txt(pos, s, color);
+	}else{
+		int nFacts = vosdFactorys.size();
+		for(int i=0; i<nFacts; i++){
+			cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
+			GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+			vtxts.push_back(txt);
+			txt->txt(pos, s, color);
+		}
 	}
 }
 
 void put(const char* str, const cv::Point& pos, const cv::Scalar& color)
 {
 	OSA_assert(str != NULL);
-	int nFacts = vosdFactorys.size();
-	for(int i=0; i<nFacts; i++){
-		cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
-		GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+	if(curFactory != NULL){
+		GLOSDTxt * txt = new GLOSDTxt(curFactory);
 		vtxts.push_back(txt);
 		txt->txt(pos, str, color);
+	}else{
+		int nFacts = vosdFactorys.size();
+		for(int i=0; i<nFacts; i++){
+			cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
+			GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+			vtxts.push_back(txt);
+			txt->txt(pos, str, color);
+		}
 	}
 }
 
@@ -74,12 +105,18 @@ void put(const int* pValue, const wchar_t* format, const cv::Point& pos, const c
 {
 	OSA_assert(pValue != NULL);
 	OSA_assert(format != NULL);
-	int nFacts = vosdFactorys.size();
-	for(int i=0; i<nFacts; i++){
-		cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
-		GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+	if(curFactory != NULL){
+		GLOSDTxt * txt = new GLOSDTxt(curFactory);
 		vtxts.push_back(txt);
 		txt->txt(pos, pValue, format, color);
+	}else{
+		int nFacts = vosdFactorys.size();
+		for(int i=0; i<nFacts; i++){
+			cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
+			GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+			vtxts.push_back(txt);
+			txt->txt(pos, pValue, format, color);
+		}
 	}
 }
 
@@ -87,12 +124,18 @@ void put(const unsigned int* pValue, const wchar_t* format, const cv::Point& pos
 {
 	OSA_assert(pValue != NULL);
 	OSA_assert(format != NULL);
-	int nFacts = vosdFactorys.size();
-	for(int i=0; i<nFacts; i++){
-		cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
-		GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+	if(curFactory != NULL){
+		GLOSDTxt * txt = new GLOSDTxt(curFactory);
 		vtxts.push_back(txt);
 		txt->txt(pos, pValue, format, color);
+	}else{
+		int nFacts = vosdFactorys.size();
+		for(int i=0; i<nFacts; i++){
+			cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
+			GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+			vtxts.push_back(txt);
+			txt->txt(pos, pValue, format, color);
+		}
 	}
 }
 
@@ -100,12 +143,18 @@ void put(const unsigned char* pValue, const wchar_t* format, const cv::Point& po
 {
 	OSA_assert(pValue != NULL);
 	OSA_assert(format != NULL);
-	int nFacts = vosdFactorys.size();
-	for(int i=0; i<nFacts; i++){
-		cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
-		GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+	if(curFactory != NULL){
+		GLOSDTxt * txt = new GLOSDTxt(curFactory);
 		vtxts.push_back(txt);
 		txt->txt(pos, pValue, format, color);
+	}else{
+		int nFacts = vosdFactorys.size();
+		for(int i=0; i<nFacts; i++){
+			cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
+			GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+			vtxts.push_back(txt);
+			txt->txt(pos, pValue, format, color);
+		}
 	}
 }
 
@@ -113,12 +162,18 @@ void put(const float* pValue, const wchar_t* format, const cv::Point& pos, const
 {
 	OSA_assert(pValue != NULL);
 	OSA_assert(format != NULL);
-	int nFacts = vosdFactorys.size();
-	for(int i=0; i<nFacts; i++){
-		cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
-		GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+	if(curFactory != NULL){
+		GLOSDTxt * txt = new GLOSDTxt(curFactory);
 		vtxts.push_back(txt);
 		txt->txt(pos, pValue, format, color);
+	}else{
+		int nFacts = vosdFactorys.size();
+		for(int i=0; i<nFacts; i++){
+			cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
+			GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+			vtxts.push_back(txt);
+			txt->txt(pos, pValue, format, color);
+		}
 	}
 }
 
@@ -127,12 +182,18 @@ void put(const int *statValue, const int nStat, const cv::Point& pos, const cv::
 	OSA_assert(statValue != NULL);
 	va_list args;
 	va_start(args, color);
-	int nFacts = vosdFactorys.size();
-	for(int i=0; i<nFacts; i++){
-		cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
-		GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+	if(curFactory != NULL){
+		GLOSDTxt * txt = new GLOSDTxt(curFactory);
 		vtxts.push_back(txt);
 		txt->txt(pos, color, statValue, nStat, args);
+	}else{
+		int nFacts = vosdFactorys.size();
+		for(int i=0; i<nFacts; i++){
+			cv::Size2f scale((float)vosdFactorys[i]->m_viewport.width/vosdFactorys[0]->m_viewport.width, (float)vosdFactorys[i]->m_viewport.height/vosdFactorys[0]->m_viewport.height);
+			GLOSDTxt * txt = new GLOSDTxt(vosdFactorys[i], scale);
+			vtxts.push_back(txt);
+			txt->txt(pos, color, statValue, nStat, args);
+		}
 	}
 	va_end(args);
 }
@@ -156,6 +217,8 @@ void erase(const void *share)
 {
 	std::vector<GLOSDTxt*>::iterator it;
 	for(it=vtxts.begin();it!=vtxts.end();){
+		if(curFactory != NULL && curFactory != (*it)->m_factory)
+			continue;
 		if((*it)->m_share == share){
 			GLOSDTxt * txt = (*it);
 			delete txt;
@@ -168,16 +231,31 @@ void erase(const void *share)
 
 void clear(void)
 {
-	int nTxts = vtxts.size();
-	for(int i=0; i<nTxts; i++)
-		delete vtxts[i];
-	vtxts.clear();
+	if(curFactory == NULL){
+		int nTxts = vtxts.size();
+		for(int i=0; i<nTxts; i++)
+			delete vtxts[i];
+		vtxts.clear();
+	}else{
+		std::vector<GLOSDTxt*>::iterator it;
+		for(it=vtxts.begin();it!=vtxts.end();){
+			if(curFactory == (*it)->m_factory){
+				GLOSDTxt * txt = (*it);
+				delete txt;
+				vtxts.erase(it);
+			}else{
+				++it;
+			}
+		}
+	}
 }
 
 void set(const void *share, const cv::Scalar& color)
 {
 	std::vector<GLOSDTxt*>::iterator it;
 	for(it=vtxts.begin();it!=vtxts.end(); it++){
+		if(curFactory != NULL && curFactory != (*it)->m_factory)
+			continue;
 		if((*it)->m_share == share){
 			GLOSDTxt * txt = (*it);
 			txt->setcolor(color);
@@ -200,6 +278,8 @@ void set(const cv::Scalar& color)
 {
 	std::vector<GLOSDTxt*>::iterator it;
 	for(it=vtxts.begin();it!=vtxts.end(); it++){
+		if(curFactory != NULL && curFactory != (*it)->m_factory)
+			continue;
 		GLOSDTxt * txt = (*it);
 		txt->setcolor(color);
 	}
@@ -220,6 +300,8 @@ void set(const void *share, const cv::Point& pos)
 {
 	std::vector<GLOSDTxt*>::iterator it;
 	for(it=vtxts.begin();it!=vtxts.end(); it++){
+		if(curFactory != NULL && curFactory != (*it)->m_factory)
+			continue;
 		if((*it)->m_share == share){
 			GLOSDTxt * txt = (*it);
 			txt->setpos(pos);
@@ -232,22 +314,16 @@ void set(const void *share, const cv::Point& pos)
  *
  */
 
-/*class Pattern
-{
-	std::vector<void *> vbases;
-protected:
-	Pattern(int nVert, GLenum primitive = GL_LINES);
-	virtual ~Pattern(void);
-	virtual int update(const std::vector<cv::Point>& vpts, const cv::Scalar& color = cv::Scalar::all(255), int thickness = 1);
-	virtual void set(const cv::Scalar& color);
-	virtual void set(const int yuv);
-};*/
-
-Pattern::Pattern(int nVert, GLenum primitive)
+Pattern::Pattern(int nVert, GLenum primitive, int bindId)
 {
 	int nFacts = vosdFactorys.size();
-	for(int i=0; i<nFacts; i++){
-		GLOSDUNITBase *base = new GLOSDUNITBase(vosdFactorys[i], nVert, primitive);
+	if(bindId<0 || bindId>=nFacts){
+		for(int i=0; i<nFacts; i++){
+			GLOSDUNITBase *base = new GLOSDUNITBase(vosdFactorys[i], nVert, primitive);
+			vbases.push_back(base);
+		}
+	}else{
+		GLOSDUNITBase *base = new GLOSDUNITBase(vosdFactorys[bindId], nVert, primitive);
 		vbases.push_back(base);
 	}
 }
