@@ -216,6 +216,11 @@ src/glosd.o : ../src/glosd.cpp \
     ../include/gltext.hpp \
     ../include/dctext.hpp \
     ../include/crosd.hpp \
+    ../include/GLBatchMini.h \
+    ../include/GLFrustum.h \
+    ../include/GLFrame.h \
+    ../include/GLMatrixStack.h \
+    ../include/GLGeometryTransform.h \
     ../include/osa/osa_mutex.h \
     ../include/osa/osa.h \
     /usr/include/signal.h \
@@ -245,5 +250,4 @@ src/glosd.o : ../src/glosd.cpp \
     /usr/include/_G_config.h \
     /usr/include/aarch64-linux-gnu/bits/sys_errlist.h \
     /usr/include/aarch64-linux-gnu/bits/stdio.h \
-    /usr/include/aarch64-linux-gnu/bits/stdio2.h \
-    ../src/GLBatchMini.h
+    /usr/include/aarch64-linux-gnu/bits/stdio2.h

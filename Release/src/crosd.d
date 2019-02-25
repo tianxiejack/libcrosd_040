@@ -210,9 +210,14 @@ src/crosd.o : ../src/crosd.cpp \
     /usr/include/c++/5/bits/stl_set.h \
     /usr/include/c++/5/bits/stl_multiset.h \
     ../src/GL/glew.h \
-    ../include/glosd.hpp \
-    ../include/GLShaderManagerMini.h \
+    ../include/GLBatchMini.h \
     ../src/math3d.h \
+    ../include/GLFrustum.h \
+    ../include/GLFrame.h \
+    ../include/GLMatrixStack.h \
+    ../include/GLGeometryTransform.h \
+    ../include/GLShaderManagerMini.h \
+    ../include/glosd.hpp \
     ../include/directOsd.hpp \
     ../include/gltext.hpp \
     ../include/dctext.hpp \
@@ -245,9 +250,4 @@ src/crosd.o : ../src/crosd.cpp \
     /usr/include/_G_config.h \
     /usr/include/aarch64-linux-gnu/bits/sys_errlist.h \
     /usr/include/aarch64-linux-gnu/bits/stdio.h \
-    /usr/include/aarch64-linux-gnu/bits/stdio2.h \
-    ../src/GLBatchMini.h \
-    ../src/GLFrustum.h \
-    ../src/GLFrame.h \
-    ../src/GLMatrixStack.h \
-    ../src/GLGeometryTransform.h
+    /usr/include/aarch64-linux-gnu/bits/stdio2.h

@@ -229,7 +229,7 @@ src/gltext.o : ../src/gltext.cpp \
     ../src/freetype/fterrors.h \
     ../src/freetype/ftmoderr.h \
     ../src/freetype/fterrdef.h \
-    ../src/GLBatchMini.h \
+    ../include/GLBatchMini.h \
     ../src/GL/glew.h \
     ../src/math3d.h \
     ../src/freetype/tttables.h \

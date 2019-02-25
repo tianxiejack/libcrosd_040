@@ -1,6 +1,6 @@
 src/GLBatchMini.o : ../src/GLBatchMini.cpp \
     /usr/include/stdc-predef.h \
-    ../src/GLBatchMini.h \
+    ../include/GLBatchMini.h \
     ../src/GL/glew.h \
     /usr/lib/gcc/aarch64-linux-gnu/5/include/stddef.h \
     /usr/lib/gcc/aarch64-linux-gnu/5/include/stdint.h \
